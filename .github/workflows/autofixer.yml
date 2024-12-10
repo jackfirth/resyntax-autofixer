@@ -33,6 +33,12 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+      - name: Clone and install target package
+        run: |
+          raco pkg install --auto --no-setup compose-app
+          raco pkg update --clone cloned-package compose-app
+          raco pkg setup --pkgs compose-app
+          cd cloned-package
       - name: Configure Git committer
         uses: actions/github-script@v7.0.1
         with:
@@ -40,12 +46,6 @@ jobs:
           script: |
             await exec.exec('git config user.name "${{ steps.generate-token.outputs.app-slug }}[bot]"');
             await exec.exec('git config user.email "${{ steps.get-user-id.outputs.user-id }}+${{ steps.generate-token.outputs.app-slug }}[bot]@users.noreply.github.com"');
-      - name: Clone and install target package
-        run: |
-          raco pkg install --auto --no-setup compose-app
-          raco pkg update --clone cloned-package compose-app
-          raco pkg setup --pkgs compose-app
-          cd cloned-package
       - name: Create branch in target package repository
         run: git checkout -b autofix-${{ github.run_number }}-${{ github.run_attempt }}
       - name: Run Resyntax
