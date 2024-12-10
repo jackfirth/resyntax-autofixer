@@ -12,12 +12,13 @@ jobs:
       pull-requests: write
       contents: write
     steps:
-      - name: Install Resyntax
+      - name: Setup Racket
         uses: Bogdanp/setup-racket@v1.11
         with:
           version: current
           dest: '"${HOME}/racketdist-current-CS"'
           sudo: never
-          packages: resyntax
+      - name: Install Resyntax
+        run: raco pkg install --auto --installation resyntax
       - name: Check Resyntax is installed
         run: resyntax --help
