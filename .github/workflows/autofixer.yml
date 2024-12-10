@@ -45,7 +45,7 @@ jobs:
 
       - name: Configure token-based access to cloned package's repository
         working-directory: cloned-package
-        run: git remote set-url origin "https://jackfirth:${{ steps.generate-token.outputs.token }}@github.com/jackfirth/compose-app.git"
+        run: git remote set-url origin "https://x-access-token:${{ steps.generate-token.outputs.token }}@github.com/jackfirth/compose-app.git"
 
       - name: Configure Git username
         working-directory: cloned-package
