@@ -19,36 +19,46 @@ jobs:
           dest: '"${HOME}/racketdist-current-CS"'
           sudo: never
           packages: resyntax
+
       - name: Check Resyntax is installed
         run: racket -l- resyntax/cli --help
+
       - name: Generate a token
         id: generate-token
         uses: actions/create-github-app-token@v1
         with:
           app-id: 999945
           private-key: ${{ secrets.RESYNTAX_APP_PRIVATE_KEY }}
+
       - name: Get GitHub App User ID
         id: get-user-id
         run: echo "user-id=$(gh api "/users/${{ steps.generate-token.outputs.app-slug }}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
         shell: bash
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+
       - name: Install target package
         run: raco pkg install --auto --no-setup compose-app
+
       - name: Clone target package
         run: raco pkg update --clone cloned-package compose-app
-      - name: Change cloned repository to authenticate with app token
+
+      - name: Configure token-based access to cloned package's repository
         working-directory: cloned-package
         run: git remote set-url origin "https://jackfirth:${{ steps.generate-token.outputs.token }}@github.com/jackfirth/compose-app.git"
+
       - name: Configure Git username
         working-directory: cloned-package
         run: git config user.name "${{ steps.generate-token.outputs.app-slug }}[bot]"
+
       - name: Configure Git email
         working-directory: cloned-package
         run: git config user.email "${{ steps.get-user-id.outputs.user-id }}+${{ steps.generate-token.outputs.app-slug }}[bot]@users.noreply.github.com"
+
       - name: Create branch in cloned package repository
         working-directory: cloned-package
         run: git checkout -b autofix-${{ github.run_number }}-${{ github.run_attempt }}
+
       - name: Run Resyntax
         working-directory: cloned-package
         run: |
@@ -61,6 +71,7 @@ jobs:
             --output-as-commit-message \
             --create-multiple-commits \
             >> /tmp/resyntax-output.txt
+
       - name: Push fixes to remote branch
         uses: actions/github-script@v7.0.1
         with:
@@ -70,6 +81,7 @@ jobs:
               'git push --set-upstream origin autofix-${{ github.run_number }}-${{ github.run_attempt }}',
               [],
               {cwd: 'cloned-package'});
+
       - name: Create pull request
         uses: actions/github-script@v7.0.1
         with:
