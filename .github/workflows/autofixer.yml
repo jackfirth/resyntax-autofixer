@@ -63,6 +63,7 @@ jobs:
         with:
           github-token: ${{ steps.generate-token.outputs.token }}
           script: |
+            await exec.exec('ls', {cwd: 'cloned-package'});
             await exec.exec(
               'git push --set-upstream origin autofix-${{ github.run_number }}-${{ github.run_attempt }}',
               {cwd: 'cloned-package'});
