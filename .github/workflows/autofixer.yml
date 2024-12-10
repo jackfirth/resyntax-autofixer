@@ -45,7 +45,7 @@ jobs:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
 
       - name: Install target package
-        run: raco pkg install --auto --no-setup compose-app
+        run: raco pkg install --auto --no-setup --skip-installed compose-app
 
       - name: Clone target package
         run: raco pkg update --clone cloned-package compose-app
@@ -88,6 +88,9 @@ jobs:
               'git push --set-upstream origin autofix-${{ github.run_number }}-${{ github.run_attempt }}',
               [],
               {cwd: 'cloned-package'});
+      
+      - name: Unclone target package
+        run: raco pkg update --unclone compose-app
 
       - name: Create pull request
         uses: actions/github-script@v7.0.1
