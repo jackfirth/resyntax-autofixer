@@ -96,12 +96,13 @@ jobs:
           script: |
             const { readFile, writeFile } = require('fs/promises');
             const commitMessageBody = await readFile('/tmp/resyntax-output.txt', { encoding: 'utf8' });
+            const targetRepo = await github.rest.repos.get({owner: "jackfirth", repo: "compose-app"});
             await github.rest.pulls.create({
               owner: "jackfirth",
               repo: "compose-app",
               title: "Automated Resyntax fixes",
               head: "autofix-${{ github.run_number }}-${{ github.run_attempt }}",
-              base: "jackfirth/compose-app",
+              base: targetRepo.default_branch,
               body: commitMessageBody,
               maintainer_can_modify: true,
             });
