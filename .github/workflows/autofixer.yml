@@ -39,6 +39,10 @@ jobs:
         run: raco pkg update --clone cloned-package compose-app
       - name: Set current directory to cloned package
         run: cd cloned-package
+      - name: Double check current directory
+        run: ls
+      - name: Double check git status
+        run: git status
       - name: Configure Git username
         run: git config user.name "${{ steps.generate-token.outputs.app-slug }}[bot]"
       - name: Configure Git email
