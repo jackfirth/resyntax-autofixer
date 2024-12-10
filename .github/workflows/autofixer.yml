@@ -16,11 +16,24 @@ jobs:
             ~/.local/share/racket
           key: ${{ runner.os }}
 
-      - name: Install Racket and Resyntax
+      - name: Install Racket
         uses: Bogdanp/setup-racket@v1.11
         with:
           version: current
-          packages: resyntax
+      
+      - name: Save Racket version
+        run: racket --version > .racket-version
+
+      - name: Cache Racket dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/racket
+            ~/.local/share/racket
+          key: ${{ runner.os }}-racket-current-${{ hashFiles('.racket-version') }}
+
+      - name: Install Resyntax
+        run: raco pkg install --auto --skip-installed resyntax
 
       - name: Check Resyntax is installed
         run: racket -l- resyntax/cli --help
