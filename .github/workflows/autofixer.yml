@@ -89,21 +89,21 @@ jobs:
               [],
               {cwd: 'cloned-package'});
 
-      # - name: Create pull request
-      #   uses: actions/github-script@v7.0.1
-      #   with:
-      #     github-token: ${{ steps.generate-token.outputs.token }}
-      #     script: |
-      #       const { readFile, writeFile } = require('fs/promises');
-      #       const commitMessageBody = await readFile('/tmp/resyntax-output.txt', { encoding: 'utf8' });
-      #       const targetRepo = await github.rest.repos.get({owner: "jackfirth", repo: "compose-app"});
-      #       const base = ('default_branch' in targetRepo) ? targetRepo.default_branch : "master";
-      #       await github.rest.pulls.create({
-      #         owner: "jackfirth",
-      #         repo: "compose-app",
-      #         title: "Automated Resyntax fixes",
-      #         head: "autofix-${{ github.run_number }}-${{ github.run_attempt }}",
-      #         base: targetRepo.default_branch,
-      #         body: commitMessageBody,
-      #         maintainer_can_modify: true,
-      #       });
+      - name: Create pull request
+        uses: actions/github-script@v7.0.1
+        with:
+          github-token: ${{ steps.generate-token.outputs.token }}
+          script: |
+            const { readFile, writeFile } = require('fs/promises');
+            const commitMessageBody = await readFile('/tmp/resyntax-output.txt', { encoding: 'utf8' });
+            const targetRepo = await github.rest.repos.get({owner: "jackfirth", repo: "compose-app"});
+            const base = ('default_branch' in targetRepo) ? targetRepo.default_branch : "master";
+            await github.rest.pulls.create({
+              owner: "jackfirth",
+              repo: "compose-app",
+              title: "Automated Resyntax fixes",
+              head: "autofix-${{ github.run_number }}-${{ github.run_attempt }}",
+              base: targetRepo.default_branch,
+              body: commitMessageBody,
+              maintainer_can_modify: true,
+            });
