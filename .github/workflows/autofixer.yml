@@ -106,7 +106,7 @@ jobs:
               repo: "compose-app",
               title: "Automated Resyntax fixes",
               head: "autofix-${{ github.run_number }}-${{ github.run_attempt }}",
-              base: targetRepo.default_branch,
+              base: base,
               body: commitMessageBody,
               maintainer_can_modify: true,
             });
