@@ -43,7 +43,7 @@ runs:
       uses: actions/create-github-app-token@v1
       with:
         app-id: 999945
-        private-key: ${{ secrets.RESYNTAX_APP_PRIVATE_KEY }}
+        private-key: ${{ inputs.private-key }}
         owner: ${{ inputs.owner }}
 
     - name: Get GitHub App User ID

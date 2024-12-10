@@ -17,3 +17,4 @@ jobs:
           package: compose-app
           owner: jackfirth
           repository: compose-app
+          private-key: ${{ secrets.RESYNTAX_APP_PRIVATE_KEY }}
