@@ -37,19 +37,17 @@ jobs:
         run: raco pkg install --auto --no-setup compose-app
       - name: Clone target package
         run: raco pkg update --clone cloned-package compose-app
-      - name: Set current directory to cloned package
-        run: cd cloned-package
-      - name: Double check current directory
-        run: ls
-      - name: Double check git status
-        run: git status
       - name: Configure Git username
+        working-directory: cloned-package
         run: git config user.name "${{ steps.generate-token.outputs.app-slug }}[bot]"
       - name: Configure Git email
+        working-directory: cloned-package
         run: git config user.email "${{ steps.get-user-id.outputs.user-id }}+${{ steps.generate-token.outputs.app-slug }}[bot]@users.noreply.github.com"
       - name: Create branch in target package repository
+        working-directory: cloned-package
         run: git checkout -b autofix-${{ github.run_number }}-${{ github.run_attempt }}
       - name: Run Resyntax
+        working-directory: cloned-package
         run: |
           racket -l- resyntax/cli fix \
             --package compose-app \
@@ -60,6 +58,9 @@ jobs:
             --output-as-commit-message \
             --create-multiple-commits \
             >> /tmp/resyntax-output.txt
+      - name: Push changes to remote branch
+        working-directory: cloned-package
+        run: git push --set-upstream origin autofix-${{ github.run_number }}-${{ github.run_attempt }}
       - name: Create pull request
         uses: actions/github-script@v7.0.1
         with:
@@ -67,12 +68,10 @@ jobs:
           script: |
             const { readFile, writeFile } = require('fs/promises');
             const commitMessageBody = await readFile('/tmp/resyntax-output.txt', { encoding: 'utf8' });
-            const commitMessageTitle = "Automated Resyntax fixes";
-            await exec.exec('git push --set-upstream origin autofix-${{ github.run_number }}-${{ github.run_attempt }}');
             await github.rest.pulls.create({
               owner: "jackfirth",
               repo: "compose-app",
-              title: commitMessageTitle,
+              title: "Automated Resyntax fixes",
               head: "autofix-${{ github.run_number }}-${{ github.run_attempt }}",
               base: "jackfirth/compose-app",
               body: commitMessageBody,
