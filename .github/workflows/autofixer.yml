@@ -37,6 +37,9 @@ jobs:
         run: raco pkg install --auto --no-setup compose-app
       - name: Clone target package
         run: raco pkg update --clone cloned-package compose-app
+      - name: Change cloned repository to SSH-based clone
+        working-directory: cloned-package
+        run: git remote set-url origin git@github.com:jackfirth/compose-app.git
       - name: Configure Git username
         working-directory: cloned-package
         run: git config user.name "${{ steps.generate-token.outputs.app-slug }}[bot]"
@@ -63,7 +66,6 @@ jobs:
         with:
           github-token: ${{ steps.generate-token.outputs.token }}
           script: |
-            await exec.exec('ls', [], {cwd: 'cloned-package'});
             await exec.exec(
               'git push --set-upstream origin autofix-${{ github.run_number }}-${{ github.run_attempt }}',
               [],
