@@ -37,9 +37,9 @@ jobs:
         run: raco pkg install --auto --no-setup compose-app
       - name: Clone target package
         run: raco pkg update --clone cloned-package compose-app
-      - name: Change cloned repository to SSH-based clone
+      - name: Change cloned repository to authenticate with app token
         working-directory: cloned-package
-        run: git remote set-url origin git@github.com:jackfirth/compose-app.git
+        run: git remote set-url origin "https://jackfirth:${{ steps.generate-token.outputs.token }}@github.com/jackfirth/compose-app.git"
       - name: Configure Git username
         working-directory: cloned-package
         run: git config user.name "${{ steps.generate-token.outputs.app-slug }}[bot]"
