@@ -8,14 +8,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Cache Racket dependencies
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cache/racket
-            ~/.local/share/racket
-          key: ${{ runner.os }}
-
       - name: Install Racket
         uses: Bogdanp/setup-racket@v1.11
         with:
@@ -25,7 +17,7 @@ jobs:
         run: racket --version > .racket-version
 
       - name: Cache Racket dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v4.2.0
         with:
           path: |
             ~/.cache/racket
