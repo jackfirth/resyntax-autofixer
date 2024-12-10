@@ -1,0 +1,129 @@
+name: Autofix
+description: Clones a Racket package, runs Resyntax on it, and creates a pull request
+inputs:
+  package:
+    description: The name of the package to fix
+    required: true
+  owner:
+    description: The GitHub user or organization that owns the package
+    required: true
+  repository:
+    description: The name of the GitHub repository containing the package
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Install Racket
+      uses: Bogdanp/setup-racket@v1.11
+      with:
+        version: current
+    
+    - name: Save Racket version
+      run: racket --version > .racket-version
+      shell: bash
+
+    - name: Cache Racket dependencies
+      uses: actions/cache@v4.2.0
+      with:
+        path: |
+          ~/.cache/racket
+          ~/.local/share/racket
+        key: ${{ runner.os }}-racket-current-${{ hashFiles('.racket-version') }}
+
+    - name: Install Resyntax
+      run: raco pkg install --auto --skip-installed resyntax
+      shell: bash
+
+    - name: Check Resyntax is installed
+      run: racket -l- resyntax/cli --help
+      shell: bash
+
+    - name: Generate a token
+      id: generate-token
+      uses: actions/create-github-app-token@v1
+      with:
+        app-id: 999945
+        private-key: ${{ secrets.RESYNTAX_APP_PRIVATE_KEY }}
+        owner: ${{ inputs.owner }}
+
+    - name: Get GitHub App User ID
+      id: get-user-id
+      run: echo "user-id=$(gh api "/users/${{ steps.generate-token.outputs.app-slug }}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
+      env:
+        GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+      shell: bash
+
+    - name: Install target package
+      run: raco pkg install --auto --no-setup --skip-installed "${{ inputs.package }}"
+      shell: bash
+
+    - name: Clone target package
+      run: raco pkg update --clone cloned-package "${{ inputs.package }}"
+      shell: bash
+
+    - name: Configure token-based access to cloned package's repository
+      working-directory: cloned-package
+      run: git remote set-url origin "https://x-access-token:${{ steps.generate-token.outputs.token }}@github.com/${{ inputs.owner }}/${{ inputs.repository }}.git"
+      shell: bash
+
+    - name: Configure Git username
+      working-directory: cloned-package
+      run: git config user.name "${{ steps.generate-token.outputs.app-slug }}[bot]"
+      shell: bash
+
+    - name: Configure Git email
+      working-directory: cloned-package
+      run: git config user.email "${{ steps.get-user-id.outputs.user-id }}+${{ steps.generate-token.outputs.app-slug }}[bot]@users.noreply.github.com"
+      shell: bash
+
+    - name: Create branch in cloned package repository
+      working-directory: cloned-package
+      run: git checkout -b autofix-${{ github.run_number }}-${{ github.run_attempt }}
+      shell: bash
+
+    - name: Run Resyntax
+      working-directory: cloned-package
+      run: |
+        racket -l- resyntax/cli fix \
+          --package "${{ inputs.package }}" \
+          --max-fixes 20 \
+          --max-modified-files 10 \
+          --max-modified-lines 300 \
+          --max-pass-count 10 \
+          --output-as-commit-message \
+          --create-multiple-commits \
+          >> /tmp/resyntax-output.txt
+      shell: bash
+
+    - name: Push fixes to remote branch
+      uses: actions/github-script@v7.0.1
+      with:
+        github-token: ${{ steps.generate-token.outputs.token }}
+        script: |
+          await exec.exec(
+            'git push --set-upstream origin autofix-${{ github.run_number }}-${{ github.run_attempt }}',
+            [],
+            {cwd: 'cloned-package'});
+    
+    - name: Unclone target package
+      run: raco pkg update --unclone "${{ inputs.package }}"
+      shell: bash
+
+    - name: Create pull request
+      uses: actions/github-script@v7.0.1
+      with:
+        github-token: ${{ steps.generate-token.outputs.token }}
+        script: |
+          const { readFile, writeFile } = require('fs/promises');
+          const commitMessageBody = await readFile('/tmp/resyntax-output.txt', { encoding: 'utf8' });
+          const targetRepo = await github.rest.repos.get({owner: "${{ inputs.owner }}", repo: "${{ inputs.repository }}"});
+          const base = ('default_branch' in targetRepo) ? targetRepo.default_branch : "master";
+          await github.rest.pulls.create({
+            owner: "${{ inputs.owner }}",
+            repo: "${{ inputs.repository }}",
+            title: "Automated Resyntax fixes",
+            head: "autofix-${{ github.run_number }}-${{ github.run_attempt }}",
+            base: base,
+            body: commitMessageBody,
+            maintainer_can_modify: true,
+          });
