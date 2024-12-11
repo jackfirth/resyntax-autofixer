@@ -117,6 +117,7 @@ runs:
           const { readFile, writeFile } = require('fs/promises');
           const commitMessageBody = await readFile('/tmp/resyntax-output.txt', { encoding: 'utf8' });
           const targetRepo = await github.rest.repos.get({owner: "${{ inputs.owner }}", repo: "${{ inputs.repository }}"});
+          console.log(targetRepo);
           const base = targetRepo.default_branch
           await github.rest.pulls.create({
             owner: "${{ inputs.owner }}",
