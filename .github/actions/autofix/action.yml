@@ -30,9 +30,9 @@ runs:
           ~/.local/share/racket
         key: ${{ runner.os }}-racket-current-${{ hashFiles('.racket-version') }}
 
-    # - name: Install Resyntax
-    #   run: raco pkg install --auto --skip-installed resyntax
-    #   shell: bash
+    - name: Install Resyntax
+      run: raco pkg install --auto --skip-installed resyntax
+      shell: bash
 
     # - name: Check Resyntax is installed
     #   run: racket -l- resyntax/cli --help
