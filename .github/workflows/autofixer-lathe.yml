@@ -1,0 +1,26 @@
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 5"
+
+jobs:
+  autofix:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - {repository: parendown-for-racket, package: parendown-lib}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Autofix package
+        uses: ./.github/actions/autofix
+        with:
+          owner: lathe
+          repository: ${{ matrix.target.repository }}
+          package: ${{ matrix.target.package }}
+          private-key: ${{ secrets.RESYNTAX_APP_PRIVATE_KEY }}
