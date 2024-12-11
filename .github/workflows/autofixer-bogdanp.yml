@@ -7,6 +7,15 @@ jobs:
   autofix:
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - {repository: racket-actor, package: actor-lib}
+          - {repository: racket-sentry, package: sentry-lib}
+          - {repository: koyo-sentry, package: koyo-sentry}
+          - {repository: racket-http-easy, package: http-easy-lib}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
@@ -14,7 +23,7 @@ jobs:
       - name: Autofix package
         uses: ./.github/actions/autofix
         with:
-          package: actor-lib
           owner: Bogdanp
-          repository: racket-actor
+          repository: ${{ matrix.target.repository }}
+          package: ${{ matrix.target.package }}
           private-key: ${{ secrets.RESYNTAX_APP_PRIVATE_KEY }}
