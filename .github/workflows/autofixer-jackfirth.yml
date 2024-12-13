@@ -14,7 +14,7 @@ jobs:
       - name: Autofix package
         uses: ./.github/actions/autofix
         with:
-          package: compose-app
           owner: jackfirth
           repository: compose-app
+          package: compose-app
           private-key: ${{ secrets.RESYNTAX_APP_PRIVATE_KEY }}

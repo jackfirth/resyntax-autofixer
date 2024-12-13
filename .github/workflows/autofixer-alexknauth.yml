@@ -7,6 +7,13 @@ jobs:
   autofix:
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - {repository: treelist-util, package: treelist-util}
+          - {repository: typed-racket-stream, package: typed-racket-stream}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
@@ -14,7 +21,7 @@ jobs:
       - name: Autofix package
         uses: ./.github/actions/autofix
         with:
-          package: treelist-util
           owner: AlexKnauth
-          repository: treelist-util
+          repository: ${{ matrix.target.repository }}
+          package: ${{ matrix.target.package }}
           private-key: ${{ secrets.RESYNTAX_APP_PRIVATE_KEY }}
