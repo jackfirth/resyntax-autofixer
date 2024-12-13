@@ -1,0 +1,20 @@
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 0"
+
+jobs:
+  autofix:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Autofix package
+        uses: ./.github/actions/autofix
+        with:
+          package: treelist-util
+          owner: AlexKnauth
+          repository: treelist-util
+          private-key: ${{ secrets.RESYNTAX_APP_PRIVATE_KEY }}
