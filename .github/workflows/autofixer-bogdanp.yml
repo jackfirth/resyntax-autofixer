@@ -14,7 +14,6 @@ jobs:
           - {repository: racket-actor, package: actor-lib}
           - {repository: racket-sentry, package: sentry-lib}
           - {repository: koyo-sentry, package: koyo-sentry}
-          - {repository: racket-http-easy, package: http-easy-lib}
 
     steps:
       - name: Checkout code
