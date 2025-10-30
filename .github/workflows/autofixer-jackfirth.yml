@@ -1,7 +1,7 @@
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 0 * * 2"
+    - cron: "0 17 * * 2"
 
 jobs:
   autofix:
@@ -15,6 +15,6 @@ jobs:
         uses: ./.github/actions/autofix
         with:
           owner: jackfirth
-          repository: compose-app
-          package: compose-app
+          repository: resyntax
+          package: resyntax
           private-key: ${{ secrets.RESYNTAX_APP_PRIVATE_KEY }}
